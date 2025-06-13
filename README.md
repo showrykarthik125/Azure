@@ -56,8 +56,10 @@ Advantages:
 
 
 we can access the data in our data lake in the databricks workspace in two ways
-- Service Principle
-- Managed Identity (Access connector for Databricks)
+# 1. Service Principle (mostly used to access the data as filesystem such as DBFS)
+# 2. Managed Identity (Access connector for Databricks) (mostly used to access the data through unity catalog)
+
+
 
 Both of them are by using the Microsoft Entra ID only 
 
@@ -71,7 +73,8 @@ It helps organizations:
 - Enable secure sign-in across Microsoft services and third-party applications
 
 
-If we want to use the **Service Principle**. 
+# 1.1. **Service Principle**
+
 ## 1. Create a Service Principal in Azure
 - Go to Microsoft Entra ID > App registrations > New Registration.
   ![image](https://github.com/user-attachments/assets/000d4937-60c4-4d9a-beff-368992246d73)
@@ -120,13 +123,38 @@ This is used to store our secret keys  in our azure cloud and access them whenev
 
 ## 6. configuration in databricks notebook to access the data of data lake in databricks workspace
 ```python
-my_secret = dbutils.secrets.get(scope='ourcreatedscope', key='ourcreatedse')
-spark.conf.set("fs.azure.account.auth.type.<storageaccount>.dfs.core.windows.net", "OAuth")
-spark.conf.set("fs.azure.account.oauth.provider.type.<storageaccount>.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider")
-spark.conf.set("fs.azure.account.oauth2.client.id.<storageaccount>.dfs.core.windows.net", "<application-id>")
-spark.conf.set("fs.azure.account.oauth2.client.secret.<storageaccount>.dfs.core.windows.net", my_secret)
-spark.conf.set("fs.azure.account.oauth2.client.endpoint.<storageaccount>.dfs.core.windows.net", "https://login.microsoftonline.com/<directoryortenantid-id>/oauth2/token")
+configs = {
+  "fs.azure.account.auth.type": "OAuth",
+  "fs.azure.account.oauth.provider.type": "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider",
+  "fs.azure.account.oauth2.client.id": client_id,
+  "fs.azure.account.oauth2.client.secret": dbutils.secrets.get(scope="ScopeName", key="SecretName"),
+  "fs.azure.account.oauth2.client.endpoint": "https://login.microsoftonline.com/<tenent_id>/oauth2/token"
+}
+
+dbutils.fs.mount(
+  source = "abfss://<containerName>@<StorageAccountName>.dfs.core.windows.net/",
+  mount_point = "/mnt/Sales",
+  extra_configs = configs)
 ```
+
+
+# 2. Managed Identity 
+
+## To provide access to the data for us to use it the databricks using Managed Identity, First we create a **ACESS CONNECTOR** for Databricks
+
+### 2.1 Create a Access Connector and assign the necessary permission to it:
+- Go to Access Connector for Azure Databricks and click on Create and choose our resource group where our databricks is located.
+  ![image](https://github.com/user-attachments/assets/af9e0294-0ff3-49c2-8d38-604ed5326d0a)
+- we need to give access to the Access Connector that we created so that it can access the data in the Data Lake just like we did to the service Principle
+- Go to your Storage Account > Container > Access Control (IAM).
+- Click Add Role Assignment.
+- Role: Storage Blob Data Contributor
+- Assign access to: Managed Identity
+- Select the Managed Identity you created (Access connector for databricks) and assign.
+  ![image](https://github.com/user-attachments/assets/00c85392-0ab1-449a-bcba-6a34a97763c3)
+
+## 2.2. 
+
 
 
 ## Delta Files:
