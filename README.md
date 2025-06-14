@@ -153,8 +153,79 @@ dbutils.fs.mount(
 - Select the Managed Identity you created (Access connector for databricks) and assign.
   ![image](https://github.com/user-attachments/assets/00c85392-0ab1-449a-bcba-6a34a97763c3)
 
-## 2.2. 
+## 2.2. Create a Metastore and Catalogs in that metastore and schemas and Tables within that unity Catalog:
 
+### **Unity Catalog Metastore:**
+
+- The Databricks **Unity Catalog Metastore** is a centralized storage system that holds metadata about our actual data — such as **catalogs**, **schemas**, **tables** and who has permission to our actual data.
+A metastore is the top-level container in Unity Catalog. Within a metastore, It provides a 3-level namespace for organizing data: catalogs, schemas (also called databases), and tables / views.
+
+- It stores metadata, not actual data.
+
+### **DataBricks Unity Catalog:**
+
+Unity Catalog is a data governance tool in Databricks. It helps us manage and control who can see, use, and change our data.
+In the databricks, catalog acts as a top-level folder that has schemas, tables and views, it helps us organise our data in clean and structured way possible.
+
+**Why is Unity Catalog useful?**
+- Easy access: All our data is listed in one place.
+- Security: You decide who can view or change the data.
+- Audit: You can track who accessed what data and when.
+- Works with all languages: Python, SQL, R, Scala—no problem!
+
+Taking Library as an example:
+Metastore = The librarian 
+- Knows everything about the library.
+- Keeps track of:
+- All the sections (Unity Catalogs)
+- What books (tables) are where
+- Who is allowed to read or borrow which books
+- Records who accessed what and when (audit)
+Unity Catalog = A section of the library
+- Like Science, Fiction, History, etc.
+- Helps organize books into meaningful areas.
+
+Schema = A bookshelf in the section
+- A smaller group of books within a section
+- Example: In the “Science” section, you might have bookshelves like “Biology,” “Physics,” etc.
+Table/View = The actual book
+- Holds the real content (data)
+- Users come here to read (query) the data
+
+Only one metastore per a region, each metastore can have multiple unity catalogs.
+![image](https://github.com/user-attachments/assets/768915a6-f992-4889-afd3-cfe7ff95cef8)
+
+## Steps to create a Metastore:
+- Got to **https://accounts.azuredatabricks.net/** and login using the admin credentails and then under catalog create a metastore.
+- Before creating a metastore, we can create a new container, which is used by the metastore where the metastore will store all the metadata (This is optional but useful)
+- and also get the access connector resouyrce id which we created earlier
+  ![image](https://github.com/user-attachments/assets/4ab0be59-6259-4e48-a0d6-695ce140cf28)
+- After that we can assign the workspaces within that metastore
+
+## Steps to create a Storage Credential and External Location:
+  Since we have have our data in the ADLS and to access that data we have created a Managed Identity (using Access Connector for Databricks), we need to let unity
+  catalog know these things by using Storage Credential (which will point to the Access connector which we created earlier) and External Location (Where our
+  actual data), the databricks uses this storage credentail to access the data which is in the External Location.
+- To create a Storage Credential and External Location follow  the below steps:
+- Go the Databricks workspaece -> Go to the Catalog Section -> under the catalog section -> click on the settings Icon -> here we can set both the Storage
+  Credentail and The External Location.
+  ![image](https://github.com/user-attachments/assets/b47c6573-a5a9-4e18-88c6-7214c3c9e9a9)
+- Firstly, lets create a Storage Credential as Follows:
+- we need to know the Access Connector ID inorder to create the Storage Credential (Storage Credential is usually creaated by default when we create a metastore and provide the access connector id at the time of its creation we can use that).
+  ![image](https://github.com/user-attachments/assets/74354ea7-7570-4558-812f-d10f8cc08bf4)
+- To create an External Location, we need to mention where our data is wheter it is Data lake Storage or S3 or even our DBFS and the URL and we need to specify
+  our Storage Credentail which we created earlier as follows:
+  ![image](https://github.com/user-attachments/assets/75e5d647-b7f6-44f4-9130-3e97ac783eb2)
+- we can even test the connection after creation
+  ![image](https://github.com/user-attachments/assets/04bc2c0f-b330-416f-a342-b4e6f7841f50)
+  ![image](https://github.com/user-attachments/assets/b68c57b5-c4f6-4b58-b4ed-67a6beeff8ea)
+- This confirms that our databricks can access the data in our ADLS using storage credentials through External Location.
+
+
+
+  
+
+  
 
 
 ## Delta Files:
